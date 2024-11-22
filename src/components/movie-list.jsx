@@ -2,30 +2,44 @@ import { useEffect, useState } from "react";
 import { FaEdit } from "react-icons/fa";
 import { MdDelete } from "react-icons/md";
 import API from "../services/api-service";
+import { useCookies } from "react-cookie";
+import useFetch from "../services/useFetch";
 
-function MovieList({ movieClicked, newMovie }) {
+function MovieList({ movieClicked, newMovie, updatedMovie }) {
+  const { data, loading, error } = useFetch("/api/movies/");
+
   const [movies, setMovies] = useState([]);
-  const [error, setError] = useState(null);
+  // const [error, setError] = useState(null);
+
+  const [token] = useCookies("mr-token"); // The unique name for this cookie is "mr-token".
 
   useEffect(() => {
-    const newMovies = movies.map((movie) =>
-      movie.id === newMovie.id ? newMovie : movie
-    );
-    setMovies(newMovies);
+    setMovies(data);
+  }, [data]);
+
+  useEffect(() => {
+    setMovies([...movies, newMovie]);
   }, [newMovie]);
 
   useEffect(() => {
-    const fetchListOfMovies = async () => {
-      const response = await API.fetchMovies();
-      if (response) {
-        setMovies(response);
-      }
-    };
-    fetchListOfMovies();
-  }, []);
+    const newMovies = movies.map((movie) =>
+      movie.id === updatedMovie.id ? { ...updatedMovie } : movie
+    );
+    setMovies(newMovies);
+  }, [updatedMovie]);
+
+  // useEffect(() => {
+  //   const fetchListOfMovies = async () => {
+  //     const response = await API.fetchMovies(token["mr-token"]);
+  //     if (response) {
+  //       setMovies(response);
+  //     }
+  //   };
+  //   fetchListOfMovies();
+  // }, []);
 
   const removeMovie = async (movieToBeRemoved) => {
-    const response = API.removeMovie(movieToBeRemoved.id);
+    const response = API.removeMovie(movieToBeRemoved.id, token["mr-token"]);
     if (response) {
       const newMovies = movies.filter(
         (movie) => movie.id !== movieToBeRemoved.id
@@ -33,6 +47,10 @@ function MovieList({ movieClicked, newMovie }) {
       setMovies(newMovies);
     }
   };
+
+  if (loading) {
+    return <h1>Loading</h1>;
+  }
 
   if (error) {
     return <h1>{error}</h1>;

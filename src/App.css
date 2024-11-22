@@ -13,3 +13,21 @@
   text-align: center;
   font-size: calc(10px + 2vmin);
 }
+
+input,
+textarea {
+  padding: 0.4rem;
+  margin: 3px;
+}
+
+button {
+  background-color: grey;
+  border-radius: 3px;
+  color: #222222;
+  padding: 2px 10px;
+}
+
+button:disabled {
+  background-color: #222222;
+  color: grey;
+}

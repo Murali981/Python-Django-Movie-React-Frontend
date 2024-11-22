@@ -2,14 +2,21 @@ import { useState } from "react";
 import React from "react";
 import { FaRegStar, FaStar } from "react-icons/fa";
 import API from "../services/api-service";
+import { useCookies } from "react-cookie";
 
 function MovieDetails({ movie, updateMovie }) {
   const [highlighted, setHighlighted] = useState(-1);
   const [error, setError] = useState(null);
 
+  const [token] = useCookies("mr-token"); // The unique name for this cookie is "mr-token".
+
   const rateMovie = async (rate) => {
     const rateMovie = async () => {
-      const response = await API.rateMovie(movie.id, { stars: rate });
+      const response = await API.rateMovie(
+        movie.id,
+        { stars: rate },
+        token["mr-token"]
+      );
       if (response) {
         getNewMovie(response);
       }
@@ -19,7 +26,7 @@ function MovieDetails({ movie, updateMovie }) {
 
   const getNewMovie = async () => {
     const fetchMovie = async () => {
-      const response = await API.getMovie(movie.id);
+      const response = await API.getMovie(movie.id, token["mr-token"]);
       if (response) {
         updateMovie(response);
       }
@@ -34,6 +41,7 @@ function MovieDetails({ movie, updateMovie }) {
           <h1 className="text-2xl pb-3">{movie.title}</h1>
           <p className="text-xl pb-3">{movie.description}</p>
           <div className="flex">
+            <FaStar className={movie.avg_rating > 0 && "text-orange-400"} />
             <FaStar className={movie.avg_rating > 1 && "text-orange-400"} />
             <FaStar className={movie.avg_rating > 2 && "text-orange-400"} />
             <FaStar className={movie.avg_rating > 3 && "text-orange-400"} />

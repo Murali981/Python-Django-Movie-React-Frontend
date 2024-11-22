@@ -1,9 +1,12 @@
 import React, { useEffect, useState } from "react";
 import API from "../services/api-service";
+import { useCookies } from "react-cookie";
 
-export default function MovieForm({ movie, updateMovie }) {
+export default function MovieForm({ movie, updateMovie, addNewMovie }) {
   const [title, setTitle] = useState("");
   const [description, setDescription] = useState("");
+
+  const [token] = useCookies("mr-token"); // The unique name for this cookie is "mr-token".
 
   useEffect(() => {
     setTitle(movie.title);
@@ -11,18 +14,27 @@ export default function MovieForm({ movie, updateMovie }) {
   }, [movie]);
 
   const saveMovie = async () => {
-    const response = await API.updateMovie(movie.id, { title, description });
+    const response = await API.updateMovie(
+      movie.id,
+      { title, description },
+      token["mr-token"]
+    );
     if (response) {
       updateMovie(response);
     }
   };
 
   const createMovie = async () => {
-    const response = await API.createMovie({ title, description });
-    // if (response) {
-    //   updateMovie(response);
-    // }
+    const response = await API.createMovie(
+      { title, description },
+      token["mr-token"]
+    );
+    if (response) {
+      addNewMovie(response);
+    }
   };
+
+  const isDisabled = title === "" || description === "";
 
   return (
     <React.Fragment>
@@ -36,17 +48,23 @@ export default function MovieForm({ movie, updateMovie }) {
             value={title}
             onChange={(e) => setTitle(e.target.value)}
           />
-          <label htmlFor="description">Title</label>
+          <label htmlFor="description">Description</label>
           <textarea
             id="description"
             placeholder="Description"
             value={description}
             onChange={(e) => setDescription(e.target.value)}
           />
+
+          <p>&nbsp;</p>
           {movie.id ? (
-            <button onClick={() => saveMovie()}>Update Movie</button>
+            <button onClick={() => saveMovie()} disabled={isDisabled}>
+              Update Movie
+            </button>
           ) : (
-            <button onClick={() => createMovie()}>Create Movie</button>
+            <button onClick={() => createMovie()} disabled={isDisabled}>
+              Create Movie
+            </button>
           )}
         </div>
       )}
