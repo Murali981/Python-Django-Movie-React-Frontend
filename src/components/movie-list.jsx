@@ -1,34 +1,38 @@
 import { useEffect, useState } from "react";
+import { FaEdit } from "react-icons/fa";
+import { MdDelete } from "react-icons/md";
+import API from "../services/api-service";
 
-function MovieList({ movieClicked }) {
+function MovieList({ movieClicked, newMovie }) {
   const [movies, setMovies] = useState([]);
   const [error, setError] = useState(null);
 
   useEffect(() => {
-    const fetchMovies = async () => {
-      try {
-        const response = await fetch("http://127.0.0.1:8000/api/movies/", {
-          method: "GET",
-          headers: {
-            "Content-Type": "application/json",
-            Authorization: "Token a8952c646b2d41e9a0bd537598e3fd5629eb03f2",
-          },
-        });
+    const newMovies = movies.map((movie) =>
+      movie.id === newMovie.id ? newMovie : movie
+    );
+    setMovies(newMovies);
+  }, [newMovie]);
 
-        if (!response.ok) {
-          setError("Error in fetching movies");
-          return;
-        }
-
-        const result = await response.json();
-        setMovies(result);
-      } catch {
-        setError("Error in fetching movies");
+  useEffect(() => {
+    const fetchListOfMovies = async () => {
+      const response = await API.fetchMovies();
+      if (response) {
+        setMovies(response);
       }
     };
-
-    fetchMovies();
+    fetchListOfMovies();
   }, []);
+
+  const removeMovie = async (movieToBeRemoved) => {
+    const response = API.removeMovie(movieToBeRemoved.id);
+    if (response) {
+      const newMovies = movies.filter(
+        (movie) => movie.id !== movieToBeRemoved.id
+      );
+      setMovies(newMovies);
+    }
+  };
 
   if (error) {
     return <h1>{error}</h1>;
@@ -38,14 +42,28 @@ function MovieList({ movieClicked }) {
     <div>
       {movies.map((movie) => {
         return (
-          <div key={movie.id}>
+          <div
+            key={movie.id}
+            className="grid grid-cols-[1fr_auto_auto] gap-3 p-3"
+          >
             <h2
+              className="text-xl cursor-pointer"
               onClick={() => {
-                movieClicked(movie);
+                movieClicked(movie, false);
               }}
             >
               {movie.title}
             </h2>
+            <FaEdit
+              onClick={(event) => {
+                movieClicked(movie, true);
+              }}
+            />
+            <MdDelete
+              onClick={(event) => {
+                removeMovie(movie);
+              }}
+            />
           </div>
         );
       })}
